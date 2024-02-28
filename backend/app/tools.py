@@ -16,10 +16,12 @@ from langchain_community.tools.connery import ConneryService
 from langchain_community.tools.tavily_search import TavilyAnswer, TavilySearchResults
 from langchain_community.utilities.arxiv import ArxivAPIWrapper
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
-from langchain_community.vectorstores.redis import RedisFilter
+#from langchain_community.vectorstores.redis import RedisFilter
+from langchain_community.vectorstores.qdrant import Qdrant
 from langchain_robocorp import ActionServerToolkit
 
-from app.upload import vstore
+from app.embedding import get_openai_embedding
+from app.qdrant import get_qdrant_client
 
 
 class DDGInput(BaseModel):
@@ -40,9 +42,12 @@ If the user asks a vague question, they are likely meaning to look up info from 
 
 
 def get_retriever(assistant_id: str):
-    return vstore.as_retriever(
-        search_kwargs={"filter": RedisFilter.tag("namespace") == assistant_id}
+    qdrant_vstore = Qdrant(
+        client=get_qdrant_client(),
+        collection_name=assistant_id,
+        embeddings=get_openai_embedding(azure=True)
     )
+    return qdrant_vstore.as_retriever()
 
 
 @lru_cache(maxsize=5)
