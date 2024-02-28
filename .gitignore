@@ -2,3 +2,4 @@
 .env.gcp.yaml
 redis-volume/
 backend/ui
+qdrant_storage
